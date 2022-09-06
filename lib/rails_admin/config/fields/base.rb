@@ -95,9 +95,10 @@ module RailsAdmin
                 elsif f.is_a?(Hash)                                              #  <Model|table_name> => <attribute|column>
                   am = f.keys.first.is_a?(Class) && AbstractModel.new(f.keys.first)
                   table_name = am && am.table_name || f.keys.first
-                  if f.values.first.is_a?(Hash)
-                    key, value = f.values.first.first
-                    column = "#{key}->>'#{value}'"
+                  if f.values.first.lambda?
+                    #TODO
+                    table_name = 'unit_devices'
+                    column = "connection_info->>'offline'"
                     type = :datetime
                   else
                     column = f.values.first
@@ -111,7 +112,9 @@ module RailsAdmin
                   property = am.properties.detect { |p| p.name == f.to_sym }
                   type = property && property.type
                 end
-                {column: "#{table_name}.#{column}", type: (type || :string)}
+                res = {column: "#{table_name}.#{column}", type: (type || :string)}
+                res[:query] = f.values.first if f.values.first.lambda?
+                res
               end
             end
           end

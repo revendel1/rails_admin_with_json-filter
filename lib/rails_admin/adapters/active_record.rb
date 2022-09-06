@@ -106,6 +106,7 @@ module RailsAdmin
           @statements = []
           @values = []
           @tables = []
+          @query = nil
           @scope = scope
         end
 
@@ -115,6 +116,7 @@ module RailsAdmin
             @statements << statement if statement.present?
             @values << value1 unless value1.nil?
             @values << value2 unless value2.nil?
+            @query = column_infos[:query] unless column_infos[:query].nil?
             @values.map! {|v| v.to_i.to_s } if field.name == :online_time
             table, column = column_infos[:column].split('.')
             @tables.push(table) if column
@@ -122,13 +124,9 @@ module RailsAdmin
         end
 
         def build
-          scope = @scope.where(@statements.join(' OR '), *@values)
-          scope = scope.references(*@tables.uniq) if @tables.any?
-          scope
-        end
+          return @query.call(@scope, @tables, @statements, @values) if @query.present?
 
-        def build_with_online_devices
-          scope = @scope.where(@statements.join(' OR '), *@values).or(@scope.where("(unit_devices.connection_info->>'offline' = '') AND (unit_devices.connection_info->>'suspended' = '') AND (unit_devices.connection_info IS NOT NULL)"))
+          scope = @scope.where(@statements.join(' OR '), *@values)
           scope = scope.references(*@tables.uniq) if @tables.any?
           scope
         end
@@ -159,7 +157,7 @@ module RailsAdmin
 
             wb.add(field, value, (filter_dump[:o] || RailsAdmin::Config.default_search_operator))
             # AND current filter statements to other filter statements
-            scope = (field_name == 'online_time' && current_time.between?(wb.values[0], wb.values[1])) ? wb.build_with_online_devices : wb.build
+            scope = wb.build
           end
         end
         scope
