@@ -126,6 +126,12 @@ module RailsAdmin
           scope = scope.references(*@tables.uniq) if @tables.any?
           scope
         end
+
+        def build_with_online_devices
+          scope = @scope.where(@statements.join(' OR '), *@values).or(@scope.where("(unit_devices.connection_info->>'offline' = '') AND (unit_devices.connection_info->>'suspended' = '') AND (unit_devices.connection_info IS NOT NULL)"))
+          scope = scope.references(*@tables.uniq) if @tables.any?
+          scope
+        end
       end
 
       def query_scope(scope, query, fields = config.list.fields.select(&:queryable?))
@@ -153,7 +159,7 @@ module RailsAdmin
 
             wb.add(field, value, (filter_dump[:o] || RailsAdmin::Config.default_search_operator))
             # AND current filter statements to other filter statements
-            scope = wb.build
+            scope = (field_name == 'online_time' && current_time.between?(wb.values[0], wb.values[1])) ? wb.build_with_online_devices : wb.build
           end
         end
         scope
