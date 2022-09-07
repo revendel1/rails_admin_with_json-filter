@@ -95,7 +95,7 @@ module RailsAdmin
                 elsif f.is_a?(Hash)                                              #  <Model|table_name> => <attribute|column>
                   am = f.keys.first.is_a?(Class) && AbstractModel.new(f.keys.first)
                   table_name = am && am.table_name || f.keys.first
-                  if f.values.first.lambda?
+                  if f.values.first.respond_to? :call
                     column = f[:column]
                     type = f[:type]
                   else
@@ -111,7 +111,7 @@ module RailsAdmin
                   type = property && property.type
                 end
                 res = {column: "#{table_name}.#{column}", type: (type || :string)}
-                res[:query] = f.values.first if f.values.first.lambda?
+                res[:query] = f.values.first if f.values.first.respond_to? :call
                 res
               end
             end
