@@ -96,10 +96,8 @@ module RailsAdmin
                   am = f.keys.first.is_a?(Class) && AbstractModel.new(f.keys.first)
                   table_name = am && am.table_name || f.keys.first
                   if f.values.first.lambda?
-                    #TODO
-                    table_name = 'unit_devices'
-                    column = "connection_info->>'offline'"
-                    type = :datetime
+                    column = f[:column]
+                    type = f[:type]
                   else
                     column = f.values.first
                     property = am && am.properties.detect { |p| p.name == f.values.first.to_sym }

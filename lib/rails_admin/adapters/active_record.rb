@@ -117,7 +117,6 @@ module RailsAdmin
             @values << value1 unless value1.nil?
             @values << value2 unless value2.nil?
             @query = column_infos[:query] unless column_infos[:query].nil?
-            @values.map! {|v| v.to_i.to_s } if field.name == :online_time
             table, column = column_infos[:column].split('.')
             @tables.push(table) if column
           end
