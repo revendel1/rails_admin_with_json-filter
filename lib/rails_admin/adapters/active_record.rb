@@ -107,6 +107,7 @@ module RailsAdmin
           @values = []
           @tables = []
           @query = nil
+          @operator = nil
           @scope = scope
         end
 
@@ -117,13 +118,14 @@ module RailsAdmin
             @values << value1 unless value1.nil?
             @values << value2 unless value2.nil?
             @query = column_infos[:query] unless column_infos[:query].nil?
+            @operator = operator
             table, column = column_infos[:column].split('.')
             @tables.push(table) if column
           end
         end
 
         def build
-          return @query.call(@scope, @tables, @statements, @values) if @query.present?
+          return @query.call(@scope, @tables, @statements, @values, @operator) if @query.present?
 
           scope = @scope.where(@statements.join(' OR '), *@values)
           scope = scope.references(*@tables.uniq) if @tables.any?
